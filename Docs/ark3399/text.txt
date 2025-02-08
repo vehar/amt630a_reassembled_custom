@@ -1,0 +1,189 @@
+﻿ARK3399
+
+USB2.0 PC Camera Controller
+
+(Primarily & Brief)
+
+Version 1.1
+
+2011-06
+
+ATTENTION:
+
+ARKMICRO TECHNOLOGIES INC. reserves the right to change or modify the information contained herein without notice. It is the customer’s responsibility to obtain the most recent revision of the document. ARKMICRO makes no warranty for the use of its products and bears no responsibility for any errors or omissions that may appear in this document.
+
+Disclaimer
+
+Arkmicro may make improvements or changes in this documentation, at any time and without notice and as it sees fit. Before using this document, please confirm that this is the latest version. The information in this documentation was prepared by Arkmicro with reasonable care and is believed to be accurate. However, Arkmicro shall not assume responsibility for losses or damages resulting from any omissions, inaccuracies, or errors contained herein.
+
+1. General Description
+
+The ARK3399 is a single-chip processor complied with high speed USB2.0, interfaces with the resolution of QVGA/CIF/VGA/SVGA/XGA/SXGA image sensors in a LQFP48 package for normal application. The ARK3399 combines USB2.0 transfer functions, image signal procession, image compression,audio sampling and the sensor interface. Thanks to the advanced functions, the ARK3399 provides PC Camera with a high cost-effectiveness solution
+
+2. Technical Features
+
+◆ USB Module
+
+● Complied with USB specification version 2.0 for high-speed (480Mbps) and full-speed (12Mbps) USB
+● Support video data transfer in USB isochronous
+● Complied with USB Video Class Version 1.1 and USB Audio Class Version 1.1
+
+◆ Sensor Module
+
+● 8/10 Bit CMOS image raw data input
+● Support QVGA/CIF/VGA/SVGA/XGA/SXGA CMOS sensor with RGB/YUV/YCbCr output
+● Up to 30fps@VGA or 15fps@SXGA for PC mode video
+● Provide individual R/G/B digital color gains control
+
+◆ Image Processing Module
+
+● Provide snapshot function
+● Provide color special effect function
+● Embedded AE calculation and report
+● Built-in gamma correction and auto white balance gain circuit
+● Provide Hardware scale with smooth filter function
+● Embedded high performance color processor
+● JPEG baseline capability of compression encode
+● Provide QQVGA/QCIF/QVGA/CIF/VGA/XGA/SXGA/WGA/WXGA output image format
+● No external memory needed
+
+◆ Other
+
+● Integrate audio sampling function
+● Integrate DFT/BIST function
+● Integrate LDO, provide 3.3v, 1.8v and 1.2v output (internal 3.3v LDO is optional)
+● Support general purpose I/O control
+● Built-in EEPROM controller for custom V_ID, P_ID and other information, support EEPROM write protection function
+● 3K program RAM, upload from EEPROM
+● 48K Bytes ROM
+
+3. Block Diagram
+
+CMOS IMAGE SENSOR
+
+Sensor Interface
+
+Image Process
+
+JPEG Encoding
+
+USB Device Controller
+
+PC
+
+MCU
+
+ADM
+
+MIC
+
+LDO
+
+GPIO
+
+PLL
+
+OSC
+
+Figure 3.1  Simple Block Diagram
+
+4. Pin Configuration
+
+5. Pin List
+
+Pin No.  Name  Attribute  Function Description
+
+Power Supply
+
+2 VSS/VSS33 P Ground
+14 VSS/VSS33 P Ground
+15 VDD12 P 1.2V Power Supply
+16 VDD18 P 1.8V Power Supply
+17 VDD33 P 3.3V Power Supply
+19 VDD5 P 5V Power Supply
+21 VDD33P P USB PHY 3.3V Power Supply
+24 VSS33S P USB PHY Ground
+25 AVDD33 P 3.3V Analog Power Supply
+27 AVSS33 P Analog Ground
+35 VSS/VSS33 P Ground
+36 Sensor_VDDI P Sensor Power Supply
+43 VDD12 P 1.2V Power Supply
+
+USB
+
+20 REXT I Reference for USB Driver (R=10kΩ to Ground)
+22 DM I/O USB D-
+23 DP I/O USB D+
+
+SENSOR
+
+29 GPIO4 I/O Sensor Reset(2); General Purpose I/O
+30 GPIO8 I/O Sensor Standby(2); General Purpose I/O
+31 Sensor_Mclk O Sensor Mclk output
+32 Sensor_Pclk I Sensor Pclk input
+33 Sensor_Vsyn I Sensor Vertical SYNC Input
+34 Sensor_Hsyn I Sensor Horizontal SYNC Input
+37 GPIO14 I/O Sensor DATA 1; General Purpose I/O
+38 GPIO13 I/O Sensor DATA 0; General Purpose I/O
+39 GPIO22 I/O Sensor DATA 9; General Purpose I/O
+40 GPIO21 I/O Sensor DATA 8; General Purpose I/O
+41 GPIO20 I/O Sensor DATA 7; General Purpose I/O
+42 GPIO19 I/O Sensor DATA 6; General Purpose I/O
+44 GPIO18 I/O Sensor DATA 5; General Purpose I/O
+45 GPIO17 I/O Sensor DATA 4; General Purpose I/O
+46 GPIO16 I/O Sensor DATA 3; General Purpose I/O
+47 GPIO15 I/O Sensor DATA 2; General Purpose I/O
+
+Other IO
+
+1 GPIO12 I/O SDA0; General Purpose I/O(1)
+3 RESET_N I External Reset Input, Active Low
+4 GPIO7 I/O Image Indicator; General Purpose I/O(1)
+5 GPIO1 I/O Special Effect/Hardware Snapshot Key; General Purpose I/O(1)
+6 GPIO9 I/O SCL1; General Purpose I/O(1)
+7 GPIO10 I/O SDA1; General Purpose I/O(1)
+8 GPIO5 I/O USB1.1/USB2.0 Select; General Purpose I/O(1)
+9 GPIO0 I/O VGA/QVGA Window Select; General Purpose I/O(1)
+10 GPIO3 I/O 50Hz/60Hz Select; General Purpose I/O(1)
+13 GPIO6 I/O MIC Function Select; General Purpose I/O(1)
+18 LDO_EN_N I Internal LDO Enable, Active Low
+48 GPIO11 I/O SCL0; General Purpose I/O(1)
+
+AUDIO
+
+28 VREF I MIC Reference Voltage Input
+26 MIC I Audio Input
+
+Crystal
+
+11 XIN I Crystal Input
+12 XOUT O Crystal Output
+
+Note 1: All GPIOs except GPIO15-GPIO22 are internal pullup.
+Note 2: The function of pads are defined by software according to applications.
+
+6. Electrical Characteristics
+
+6.1 DC Operating conditions:
+
+Symbol  Parameter  Min  Typ  Max  Unit
+
+VDD33 Power Supply 2.85 3.0 3.15 V
+VDD18 Power Supply 1.6 1.7 1.8 V
+Vin Input voltage 3.7  5.6 V
+Topr Operating temperature -10 70 ℃
+
+Note1: 3.3V LDO output voltage can be adjusted for 2.7V/ 2.8V/ 2.9V/ 3.0V/ 3.1V/ 3.2V/ 3.3V, the default value is 3.0V
+
+Note2: 1.8V LDO output voltage can be adjusted for 1.2V /1.5V /1.7V /1.75V /1.8V /1.85V /1.9V, the default value is 1.7V
+
+6.2 AC Operating conditions:
+
+Symbol  Description  Max Operating Frequency
+
+MCLK Sensor clock (adjust) 24MHz (default)
+XI Crystal input clock 12MHz±6KHz
+SIO_C I2C clock frequency 400KHz
+
+7. Package Diagram
+
