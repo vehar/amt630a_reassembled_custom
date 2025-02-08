@@ -1,0 +1,301 @@
+;:----------------- SAMPLE
+        .hex
+;------------------
+;this is a small sample program for no$x51,
+;it displays some text, and allows to type
+;some numbers...
+;------------------
+;*** The ";:---" marked lines are major headlines, which may be viewed
+;*** in Condensed Display mode (type "F6+C" in nocash XED editor).
+;------------------
+;*** The ";***" marked lines are comments for people whom are new to
+;*** no$tools, if so, be sure to read this stuff, beside for some dumb
+;*** tutorials waffling it DOES contain information about useful features.
+;------------------
+;*** directive ".X51_STYLE_Z80" below selects 8051 instruction set by using
+;*** parameter format that complies to Z80/80X86 syntax. this is kinda useful
+;*** since, except maybe for C64/65XX programmers, the native 8051 syntax is
+;*** rather confusing.
+ .x51_style_z80
+;*** commands remain as is, but operands are now translated as such:
+;*** ___NATIVE___________Z80/80X86_____
+;***    #immediate  -->  immediate     ;immediate
+;***    register    -->  register      ;direct (or implied)
+;***    address     -->  [address]     ;direct
+;***    @register   -->  [register]    ;indirect
+;***    sfrbitname  -->  sfrbitname    ;bit (or implied C)
+;***    address.bit -->  [address].bit ;bit
+;***    jmp @a+dptr -->  jmp a+dptr    ;sets PC=DPTR+A
+;*** all registers (including A,B,R4,P2,TMOD,etc) are consequently kept
+;*** specified without brackets, all other variables in memory (including
+;*** such addressed by symbolic labels) are specified inside []-brackets.
+;***   when porting existing 8051-style code to new syntax, preferably
+;*** backup the old source/binary, and use BINARY file comparision (eg. DOS
+;*** "FC /B oldfile.bin newfile.bin" to ensure 1:1 translation.
+;***   alternately, directive ".X51" would select native 8051 syntax.
+;*** the preferred syntax in debug mode can be configured in debug setup.
+;------------------
+lcd_typ equ 0                   ; 0 = 2*16   38h = 1*16
+;------------------
+;:----------------- Variables in Internal RAM
+;------------------
+;*** the ".RAM" directive instructs the no$x51/a22i assembler to treat
+;*** the following as un-initialized RAM areas. Any data (or opcodes)
+;*** are not written to the binary file, attempts to initialize data
+;*** to specific numbers will be thus ignored. Switchback by ".ROM".
+ .ram
+;*** Register R0-7/Bank0 are located in RAM at 00-07, Bank1-3 (RAM 08-1F)
+;*** are not used in this program, so we may set the RAM data origin to 8.
+ org 8
+ xloc    db 0            ;display xloc (0..15, add 40h for second line)
+ stack   equ $           ;Stack
+;*** The above 'stack' label specifies the first FREE byte that may be used
+;*** for the stack area, however, the SP register is incremented before the
+;*** first PUSH or CALL writes to stack memory, so that "MOV SP,#stack-1"
+;*** may be used to initialize the SP register to the LAST USED data byte.
+;*** Unlike as in most other CPUs, the stack is INCREMENTING.
+;------------------
+;:----------------- Start of Program Code in ROM
+;------------------
+;*** the ".ROM" directive re-enables normal opcode/data emmission to the
+;*** binary file, by undoing the above ".RAM" directive. Switching between
+;*** ".RAM" and ".ROM" is possible, both may have different origins which
+;*** are both memorized and are automatically restored upon switching.
+ .rom
+ org 0
+ jmp  start             ;-Reset entry point
+;------------------
+;*** The current example program does not use any interrupts, but the
+;*** outcommented code below illustrates how interrupt vectors could
+;*** be located at fixed addresses 03h,0Bh,13h,etc.
+;*** The "$" symbol indicates the current address, the "DEFS" directive
+;*** (fill space of NN bytes) will produce an errormessage in case that
+;*** the current address already exceeded the desired vector address.
+;------------------
+;defs 03h-$
+;jmp  int0handler       ;-External Interrupt 0 handler
+;------------------
+;defs 0bh-$
+;jmp  timer0handler     ;-Timer 0 Interrupt handler
+;------------------
+;defs 13h-$
+;jmp  int1handler       ;-External Interrupt 0 handler and seconds interrupt
+;------------------
+;:----------------- LCD Display
+;------------------
+wrchrinit:
+ push a
+ push dpl
+ push dph
+ mov  dpl,0
+ mov  dph,80h    ; loc. for address LCD
+ movx [dptr],a   ; addr. LCD 0..7, 40..47
+ clr  a
+ djnz a,$
+ djnz a,$       ; zweiter weitloop fr zeilensprung
+ pop  dph
+ pop  dpl
+ pop  a
+ ret
+;------------------
+clr_lcd:
+ push a
+ mov  a,01h             ; clear display
+ call wrchrinit
+ mov  a,02h             ; cursor home
+ call wrchrinit
+ mov  [xloc],0          ; LCD-Anfang
+ pop  a
+ ret
+;--------------------
+init_lcd:
+ call clr_lcd           ; clear LCD und xloc=0
+ mov  a,06h             ; entry mode: increment + freeze
+ call wrchrinit
+ mov  a,0Eh             ; diplay ON + Cursor ON + No blink Char
+ call wrchrinit
+ mov  a,10h             ; cursor move
+ call wrchrinit
+ mov  a,38h             ; 8 bit transfer
+ call wrchrinit
+ mov  a,80h             ; DD-Address = 00
+ call wrchrinit
+ ret
+;------------------
+wrchr:          ;in: A=ASCII character, XLOC=lcd_destadr - out: XLOC incremented
+ push dpl
+ push dph
+ push a   ;-->  ;-this is read-out from inside of the procedure
+ mov  a,[xloc]  ;\
+ and  a,0f8h    ;
+ jz   a,skipadr ;
+ mov  a,lcd_typ ; xloc +38 wenn >=8 fuer einzeiliges Display
+skipadr:        ;
+ add  a,[xloc]  ;
+ or   a,80h     ;
+ call wrchrinit ; Set address
+ inc  [xloc]    ;/
+ pop  a   ;<---
+ push a   ;--->
+ mov  dph,82h   ;\
+ movx [dptr],a  ; write chr
+ clr  a         ;
+ djnz a,$       ;/
+ pop  a   ;<---
+ pop  dph
+ pop  dpl
+ ret
+;------------------
+send_ram_lcd:   ;in: R0=ptr to ASCIZ string in RAM, XLOC=lcd_destadr
+ push a         ;out: R0 and XLOC incremented
+@@lop:
+ mov  a,[r0]    ;-read one character
+ inc  r0        ;-ptr to next character
+ jz   a,@@done  ;-exit if A=00h (end of string)
+ call wrchr     ;-display character
+ jmp  @@lop
+@@done:
+ pop  a
+ ret
+;*** The above "@@"-labels are local labels, the assembler automatically
+;*** forgets any such locals at the moment when a global label becomes
+;*** defined (that is, any label that is not preceeded by "@@").
+;*** This is particulary useful as each procedure may use "@@lop" as an
+;*** independant label, instead of using imaginary expressions such like:
+;*** lop1, lop02, loop1, lop4, lop_lcd, lop_A, lop_here, and lop_there..
+;------------------
+send_rom_lcd:   ;in: DPTR=ptr to ASCIZ string in ROM, XLOC=lcd_destadr
+ push a         ;out: DPTR and XLOC incremented
+@@lop:
+ clr  a         ;-zero offset for below MOVC
+ movc a,[a+dptr];-read one character
+ inc  dptr      ;-ptr to next character
+ jz   a,@@done  ;-exit if A=00h (end of string)
+ call wrchr     ;-display character
+ jmp  @@lop
+@@done:
+ pop  a
+ ret
+;------------------
+;:----------------- Keyboard and Watchdog
+;------------------
+getkey:         ;out: A=currently pressed character, 00h=None
+ push b
+ push dpl
+ push dph
+ call watchdog_reload   ; Reload watchdog timer
+ mov  dph,0dfh
+ mov  dpl,000h          ;ptr offset in tastentabelle
+@@nextrow:
+ mov  p4,dph            ;output bit 5,6,7 input bits=high
+ nop
+ mov  a,p4              ;input bit 1,2,3,4
+ rcr  a
+ mov  b,4
+@@bitlop:               ;\
+ rcr  a                 ;
+ jnc  @@this            ;/
+ inc  dpl               ;-pointer in @@table
+ djnz b,@@bitlop
+ mov  a,dph             ;\
+ rol  a                 ; next row mask
+ mov  dph,a             ;/
+ jne  a,0feh,@@nextrow
+@@this:
+ mov  a,dpl
+ mov  dptr,@@table
+ movc a,[a+dptr]
+ pop  dph
+ pop  dpl
+ pop  b
+ ret
+;---
+@@table db '369#2580147*',00h   ;-ending zero used if no key pressed
+;------------------
+watchdog_reload:
+; Watchdog Timer Reload to 0
+; jetzt ist 569 ms Zeit, bevor ein Reset stattfindet
+ push a
+ or   pcon,10h          ; Watchdog Load Enable
+ clr  a
+ mov  t3,a              ; reload watchdog timer to max.value 0
+ pop  a
+ ret
+;*** Note that this procedure is slightly misplaced here for TWO reasons:
+;***   First, in a well-structured program, sub-routines should be always
+;*** located prior to their parents, ie. the most basic procedures at
+;*** the beginning, and the main program at the end of the program code.
+;*** Aside from the esthetical point of view, this ensures the any CALL
+;*** instructions will not contain forward references, which allows the
+;*** assembler to optimize program size by using 2-byte ACALL opcodes
+;*** (when possible) rather than 3-byte LCALL opcodes.
+;***   Second, care should be taken that the watchdog function cannot be
+;*** entered by a program that has run out of control. It is thus not
+;*** very good to have the data "@@table" located prior to the watchdog
+;*** _reload label, any unwanted jumps into that data area may still
+;*** stumble through the data - and into the watchdog procedure. There
+;*** should be always at least one JMP or RET opcode prior to the watchdog
+;*** procedure, or, preferably, the opcode stream NOP, NOP, SJMP $, RET.
+;------------------
+;:----------------- Main Program
+;------------------
+start:
+ mov  sp,stack-1
+ or   pcon,20h          ; switch off ALE
+ call init_lcd
+ call clr_lcd           ; clear screen
+ mov  [xloc],40h        ; init location LCD
+ mov  dptr,txt_type     ; txt
+ call send_rom_lcd
+ mov  r1,0h  ;xloc inputline
+@@lop:
+ mov  [xloc],0h         ; init location LCD
+ mov  dptr,txt_hello    ; txt
+ call send_rom_lcd
+ call @@sub
+ mov  [xloc],0h         ; init location LCD
+ mov  dptr,txt_sample   ; txt
+ call send_rom_lcd
+ call @@sub
+ jmp  @@lop
+;---
+@@sub:
+ mov  r2,10h
+@@keylop2:
+ mov  b,40h
+@@keylop:
+ mov  a,r1              ;\
+ and  a,0fh             ;
+ or   a,40h             ;
+ mov  [xloc],a          ;/
+ call getkey
+ djnz b,@@keylop
+ jz   a,@@nokey
+ call wrchr
+ inc  r1                ;-
+@@nokey:
+ djnz r2,@@keylop2
+ ret
+;------------------
+txt_hello:  db ' -*- HELLO! -*- ',0
+txt_sample: db 'THIS IS A SAMPLE',0
+txt_type:   db '  TYPE NUMBERS  ',0
+;------------------
+;:----------------- End of File
+;------------------
+;*** below "lastline" is just an (optional) dummy label that makes it easier
+;*** to determine to end address/filesize by examining that label in debugger.
+ lastline:
+;*** below "DEFS" could be optionally used to blank-pad unused memory space
+;*** (in this case assuming an EPROM/FEEPROM size of 32KBytes), it is
+;*** outcommented because it'd just take up binfile/disk space, and because
+;*** it'd overwrite buffered data in the FEEPROM (which you may have saved
+;*** inside of it), and because EPROM/FEEPROM programming time would increase
+;*** for larger binfiles.
+;*** However, for compatibility with existing 80C51 assemblers, and in order
+;*** to keep EPROM/FEEPROM programming time reduced, "DEFS" fills memory by
+;*** FFh bytes (instead of 00h, as usually)
+ ;defs 8000h-$
+;*** below "END" indicates the end of the source code, any following text,
+;*** data, comments, or instructions will be ignored.
+ end

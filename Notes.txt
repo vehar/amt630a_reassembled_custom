@@ -1,0 +1,9 @@
+Other repos with C sdk
+https://github.com/r315/AMT630A-car-tft-monitor
+https://github.com/zhaobing-byte/AMT630A_Project
+
+
+Disasm was taken from https://forums.nesdev.org/viewtopic.php?f=23&t=16825
+https://problemkaputt.de/x51specs.htm#amt630amemorymap
+DS https://img.ozdisan.com/ETicaret_Dosya/476305_9301432.PDF 
+60267.85714 bauds actual on set_baudrate_57600bps
