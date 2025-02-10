@@ -38,8 +38,3 @@ const uint8_t firm_adc_init_io_list[] = {
 
 // Function prototype
 void init_io_via_io_list(const uint8_t *list);
-
-void init_ADC_analog_hardware()
-{
-    init_io_via_io_list(firm_adc_init_io_list);
-}

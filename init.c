@@ -30,15 +30,15 @@ void main_init_part_1(void)
 
 /*
 set_baudrate_57600bps:   ;init 80C52-style Timer2 for baudrate
- ;computes the baudrate reload value as so:
- ; -27000000/(57600*32) = -14.6484375 = rounded = -14 = FFF2h
- ;due to the rounding, this will produce:
- ; -27000000/-14/32 = 60267.85714 bauds = does that work well?
- ;alternately, a bit closer would be:
- ; -27000000/-15/32 = 56250 bauds
- ;best would be to avoid/reduce the div32 effect if possible
- ;(at least standard 80C51's allow to select div16 in PCON)
- ;- - -
+ computes the baudrate reload value as so:
+  -27000000/(57600*32) = -14.6484375 = rounded = -14 = FFF2h
+ due to the rounding, this will produce:
+  -27000000/-14/32 = 60267.85714 bauds = does that work well?
+ alternately, a bit closer would be:
+  -27000000/-15/32 = 56250 bauds
+ best would be to avoid/reduce the div32 effect if possible
+ (at least standard 80C51's allow to select div16 in PCON)
+ - - -
 @@rate57600 equ 0FFF2h
  ;- - -
  */

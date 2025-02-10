@@ -6,6 +6,11 @@ void firm_adc_init_io_list(void)
     init_io_via_io_list(adc_init_io_list);
 }
 
+void init_ADC_analog_hardware()
+{
+    init_io_via_io_list(firm_adc_init_io_list);
+}
+
 void init_ADC_analog_hardware(void)
 {
     firm_adc_init_io_list();
